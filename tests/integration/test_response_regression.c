@@ -155,7 +155,7 @@ static size_t build_msg(opcua_byte_t *out, size_t cap, opcua_uint32_t seq, opcua
 }
 
 static void enqueue_connect(mock_t *mock) {
-    opcua_byte_t tmp[512], chunk[512];
+    opcua_byte_t tmp[512] = {0}, chunk[512] = {0};
     mu_binary_writer_t w;
     size_t clen;
 
@@ -249,7 +249,7 @@ static void enqueue_connect(mock_t *mock) {
 }
 
 static void enqueue_browse_objects(mock_t *mock, opcua_uint32_t seq) {
-    opcua_byte_t tmp[512], chunk[512];
+    opcua_byte_t tmp[512] = {0}, chunk[512] = {0};
     mu_binary_writer_t w;
     mu_binary_writer_init(&w, tmp, sizeof(tmp));
     {
@@ -279,7 +279,7 @@ static void enqueue_browse_objects(mock_t *mock, opcua_uint32_t seq) {
 }
 
 static void enqueue_read_myvar1(mock_t *mock, opcua_uint32_t seq) {
-    opcua_byte_t tmp[512], chunk[512];
+    opcua_byte_t tmp[512] = {0}, chunk[512] = {0};
     mu_binary_writer_t w;
     mu_binary_writer_init(&w, tmp, sizeof(tmp));
     {
@@ -310,7 +310,7 @@ static opcua_uint64_t test_get_tick_ms(void *c) {
 }
 
 static void enqueue_create_subscription(mock_t *mock, opcua_uint32_t seq) {
-    opcua_byte_t tmp[512], chunk[512];
+    opcua_byte_t tmp[512] = {0}, chunk[512] = {0};
     mu_binary_writer_t w;
     mu_binary_writer_init(&w, tmp, sizeof(tmp));
     {
@@ -328,7 +328,7 @@ static void enqueue_create_subscription(mock_t *mock, opcua_uint32_t seq) {
 }
 
 static void enqueue_publish(mock_t *mock, opcua_uint32_t seq) {
-    opcua_byte_t tmp[256], chunk[256];
+    opcua_byte_t tmp[256] = {0}, chunk[256] = {0};
     mu_binary_writer_t w;
     mu_binary_writer_init(&w, tmp, sizeof(tmp));
     {

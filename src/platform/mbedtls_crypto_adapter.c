@@ -337,9 +337,8 @@ static opcua_statuscode_t m_rsa_pss_sha256_verify(void *context, const opcua_byt
         return MU_STATUS_BAD_SECURITYCHECKSFAILED;
     }
 #if MBEDTLS_VERSION_MAJOR >= 3
-    /* mbedTLS 3.x removed the mode argument. */
-    ret = mbedtls_rsa_rsassa_pss_verify(rsa, mbedtls_ctr_drbg_random, NULL, MBEDTLS_MD_SHA256, sizeof(hash), hash,
-                                        signature);
+    /* mbedTLS 3.x: mode and RNG arguments removed (verify needs no RNG). */
+    ret = mbedtls_rsa_rsassa_pss_verify(rsa, MBEDTLS_MD_SHA256, sizeof(hash), hash, signature);
 #else
     ret = mbedtls_rsa_rsassa_pss_verify(rsa, mbedtls_ctr_drbg_random, NULL, MBEDTLS_RSA_PUBLIC, MBEDTLS_MD_SHA256,
                                         sizeof(hash), hash, signature);
