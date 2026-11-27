@@ -106,14 +106,13 @@ def _is_int(value: Any) -> bool:
 def _validate_sparse_true_profile_map(
     errors: list[str],
     item: dict,
-    item_id: str,
-    kind: object,
+    item_id: object,
     field_name: str,
     known_profile_keys: set[str],
 ) -> None:
     if field_name not in item:
         return
-    if kind != "conformance_unit":
+    if item.get("kind") != "conformance_unit":
         _err(
             errors,
             f"item '{item_id}': {field_name} is only valid on conformance_unit items",
@@ -457,7 +456,6 @@ def validate_manifest(manifest: dict) -> list[str]:
                 errors,
                 item,
                 item_id,
-                kind,
                 field_name,
                 known_profile_keys,
             )

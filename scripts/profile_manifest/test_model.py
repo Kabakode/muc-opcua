@@ -24,7 +24,7 @@ def _resolved_manifest() -> dict[str, object]:
     with graph_path.open(encoding="utf-8") as graph_file:
         graph = json.load(graph_file)
     graph_deps.resolve_into(manifest, graph)
-    assert model.validate_manifest(manifest) == []
+    assert not model.validate_manifest(manifest)
     return manifest
 
 
@@ -188,7 +188,7 @@ def test_validate_manifest_accepts_exact_true_profile_requirement(
     errors = model.validate_manifest(manifest)
 
     # Then the requirement value is accepted.
-    assert errors == []
+    assert not errors
 
 
 def test_validate_manifest_rejects_non_list_advertised_profile_markers() -> None:

@@ -67,58 +67,68 @@ class ProfileRequirementResolutionTest(unittest.TestCase):
         self.assertTrue(project_item["profile_defaults"]["standard"])
 
 
+def _standard_marker_manifest() -> dict:
+    profile_defaults = {
+        "nano": False,
+        "micro": False,
+        "embedded": False,
+        "standard": True,
+        "full": True,
+        "custom": False,
+    }
+    return {
+        "profiles": {},
+        "advertised_profile_markers": [{
+            "id": "MUC_OPCUA_MARKER_STANDARD_PROFILE",
+            "required_profile": "standard",
+        }],
+        "items": [
+            {
+                "id": "z_graph_required",
+                "kind": "conformance_unit",
+                "implementation_state": "claimed",
+                "kconfig_symbol": "MUC_OPCUA_CU_GRAPH_REQUIRED",
+                "opc_display_name": "Graph Required",
+                "profile_defaults": dict(profile_defaults),
+                "required_for_profile": {"standard": True},
+            },
+            {
+                "id": "m_default_only",
+                "kind": "conformance_unit",
+                "implementation_state": "claimed",
+                "kconfig_symbol": "MUC_OPCUA_CU_DEFAULT_ONLY",
+                "opc_display_name": "Default Only",
+                "profile_defaults": dict(profile_defaults),
+            },
+            {
+                "id": "a_project_required",
+                "kind": "conformance_unit",
+                "implementation_state": "claimed",
+                "kconfig_symbol": "MUC_OPCUA_CU_PROJECT_REQUIRED",
+                "opc_display_name": "Project Required",
+                "profile_defaults": dict(profile_defaults),
+                "project_required_for_profile": {"standard": True},
+            },
+        ],
+        "capacities": [],
+    }
+
+
 class ProfileMarkerGenerationTest(unittest.TestCase):
     def test_standard_marker_ands_every_effective_mandatory_canonical_cu(self) -> None:
         # Given graph-required, project-required, and default-only Standard CUs.
-        profile_defaults = {
-            "nano": False,
-            "micro": False,
-            "embedded": False,
-            "standard": True,
-            "full": True,
-            "custom": False,
-        }
-        manifest = {
-            "profiles": {},
-            "advertised_profile_markers": [{
-                "id": "MUC_OPCUA_MARKER_STANDARD_PROFILE",
-                "required_profile": "standard",
-            }],
-            "items": [
-                {
-                    "id": "z_graph_required",
-                    "kind": "conformance_unit",
-                    "implementation_state": "claimed",
-                    "kconfig_symbol": "MUC_OPCUA_CU_GRAPH_REQUIRED",
-                    "opc_display_name": "Graph Required",
-                    "profile_defaults": dict(profile_defaults),
-                    "required_for_profile": {"standard": True},
-                },
-                {
-                    "id": "m_default_only",
-                    "kind": "conformance_unit",
-                    "implementation_state": "claimed",
-                    "kconfig_symbol": "MUC_OPCUA_CU_DEFAULT_ONLY",
-                    "opc_display_name": "Default Only",
-                    "profile_defaults": dict(profile_defaults),
-                },
-                {
-                    "id": "a_project_required",
-                    "kind": "conformance_unit",
-                    "implementation_state": "claimed",
-                    "kconfig_symbol": "MUC_OPCUA_CU_PROJECT_REQUIRED",
-                    "opc_display_name": "Project Required",
-                    "profile_defaults": dict(profile_defaults),
-                    "project_required_for_profile": {"standard": True},
-                },
-            ],
-            "capacities": [],
-        }
+        manifest = _standard_marker_manifest()
 
         # When Kconfig is generated from the requirement model.
         kconfig = generate_kconfig(manifest)
 
         # Then the hidden marker is the stable AND closure, not profile default intent.
+        self._assert_marker_block(kconfig)
+
+        # And Kconfig resolves the marker on only while every mandatory CU is on.
+        self._assert_marker_resolution(kconfig)
+
+    def _assert_marker_block(self, kconfig: str) -> None:
         marker_start = kconfig.index("config MUC_OPCUA_MARKER_STANDARD_PROFILE")
         marker_end = kconfig.index("\n\n", marker_start)
         marker_block = kconfig[marker_start:marker_end]
@@ -148,7 +158,7 @@ class ProfileMarkerGenerationTest(unittest.TestCase):
             },
         )
 
-        # And Kconfig resolves the marker on only while every mandatory CU is on.
+    def _assert_marker_resolution(self, kconfig: str) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             kconfig_path = os.path.join(temp_dir, "Kconfig")
             with open(kconfig_path, "w", encoding="utf-8") as kconfig_file:

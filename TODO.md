@@ -15,13 +15,6 @@
 | D-TRUST | TrustList integration | Full TrustList management + CRL parsing |
 | D-PUSH | Push certificate model | ServerConfigurationType reverse-direction management |
 | C-2484 | Implement BitFieldMaskDataType node (NodeId 11737) and `MUC_OPCUA_CU_BASE_INFO_BITFIELDMASKDATATYPE` CMake export under the canonical CU 2484 guard | Blocked: NodeId 11737 is absent from generated ID tables and requires a generator-data addition, not hand-edits to generated content. Intent preserved from stash `bd39b617` (triage: stash-triage report §stash@{3}); the browse-name string already exists at `src/address_space/base_nodes.c:242`. |
-| S-363-1 | too-many-branches (17/15) in `scripts/profile_manifest/generated_kconfig_policy.py:46` | Pre-existing style debt surfaced by Codacy on PR #363; generated-policy parser complexity. |
-| S-363-2 | too-many-locals (24/15) in `scripts/profile_manifest/generated_kconfig_policy.py:46` | Pre-existing style debt surfaced by Codacy on PR #363; same generated-policy parser. |
-| S-363-3 | too-many-arguments (6/5) in `scripts/profile_manifest/model.py:106` | Pre-existing style debt surfaced by Codacy on PR #363; stable internal model API. |
-| S-363-4 | too-many-positional-arguments (6/5) in `scripts/profile_manifest/model.py:106` | Pre-existing style debt surfaced by Codacy on PR #363; same stable model API. |
-| S-363-5 | Explicit `validate_manifest(...) == []` comparison in `scripts/profile_manifest/test_model.py:27` | Pre-existing style debt surfaced by Codacy on PR #363; explicit assertion style. |
-| S-363-6 | Explicit `errors == []` comparison in `scripts/profile_manifest/test_model.py:191` | Pre-existing style debt surfaced by Codacy on PR #363; pre-range line shifted by a new test. |
-| S-363-7 | too-many-locals (18/15) in `scripts/profile_manifest/test_profile_requirements.py:71` | Pre-existing style debt surfaced by Codacy on PR #363; pre-existing test readability debt. |
 
 ## Recently Completed
 
@@ -30,6 +23,7 @@
 | 5-step cleanup | Manifest integrity sweep | Per-CU kconfig_symbol, dead code removal, aggregator cleanup, implementation audit, gate audit |
 | #302 | CTT Gauntlet compliance | 42/49 failures fixed. 520 OPC CUs claimed (later audited). |
 | #360 | CU claiming sweep | 119→568 claimed, 525 OPC CUs tracked |
+| S-363-1..7 | Codacy style debt in `scripts/profile_manifest/` | Split `_check_incomplete_item_visibility` into helpers; dropped `kind` arg from `_validate_sparse_true_profile_map`; implicit-booleaness asserts; extracted marker-test helpers. 112/112 tests pass, `validate.py --all` OK. |
 | Constitution v1.0.3 | Principle VIII — CU-Level Kconfig Gating | Every CU gets its own Kconfig symbol, `#ifdef` gating, no invented middlemen |
 
 ## State
