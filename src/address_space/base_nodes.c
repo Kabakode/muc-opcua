@@ -1903,12 +1903,7 @@ static const opcua_byte_t s_arg_subscription_id[] = "SubscriptionId";
 static const opcua_byte_t s_arg_server_handles[] = "ServerHandles";
 static const opcua_byte_t s_arg_client_handles[] = "ClientHandles";
 
-#define MU_ARG_UINT32_DT                                                                                               \
-    {                                                                                                                  \
-        0, MU_NODEID_NUMERIC, {                                                                                        \
-            7                                                                                                          \
-        }                                                                                                              \
-    }
+#define MU_ARG_UINT32_DT {0, MU_NODEID_NUMERIC, {7}}
 #define MU_ARG_NO_DESC                                                                                                 \
     {                                                                                                                  \
         {-1, NULL}, {                                                                                                  \

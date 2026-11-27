@@ -10,6 +10,7 @@
 #include <mbedtls/pk.h>
 #include <mbedtls/sha1.h>
 #include <mbedtls/sha256.h>
+#include <mbedtls/version.h>
 #include <mbedtls/x509_crt.h>
 #ifdef MUC_OPCUA_CU_SECURITY_ECC
 #include <mbedtls/chachapoly.h>
@@ -38,9 +39,16 @@ struct mbedtls_crypto_context {
 #endif
 };
 
+/* mbedtls_md() has the same signature on mbedTLS 2.x and 3.x, unlike the
+   sha256_ret/sha1_ret helpers that 3.x removed. */
+static int m_hash(mbedtls_md_type_t type, const opcua_byte_t *data, size_t length, opcua_byte_t *out) {
+    const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type(type);
+    return md_info ? mbedtls_md(md_info, data, length, out) : -1;
+}
+
 static opcua_statuscode_t m_sha256(void *context, const opcua_byte_t *data, size_t length, opcua_byte_t *digest) {
     (void)context;
-    int ret = mbedtls_sha256_ret(data, length, digest, 0);
+    int ret = m_hash(MBEDTLS_MD_SHA256, data, length, digest);
     return (ret == 0) ? MU_STATUS_GOOD : MU_STATUS_BAD_INTERNALERROR;
 }
 
@@ -127,12 +135,27 @@ static opcua_statuscode_t m_rsa_sha256_sign(void *context, const opcua_byte_t *d
                                             opcua_byte_t *signature, size_t *signature_length) {
     struct mbedtls_crypto_context *ctx = (struct mbedtls_crypto_context *)context;
     opcua_byte_t hash[32];
-    int ret = mbedtls_sha256_ret(data, length, hash, 0);
+    int ret = m_hash(MBEDTLS_MD_SHA256, data, length, hash);
     if (ret != 0) {
         return MU_STATUS_BAD_INTERNALERROR;
     }
 
+    mbedtls_entropy_context entropy;
+    mbedtls_ctr_drbg_context ctr_drbg;
+    mbedtls_entropy_init(&entropy);
+    mbedtls_ctr_drbg_init(&ctr_drbg);
+    ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *)"sign", 4);
+#if MBEDTLS_VERSION_MAJOR >= 3
+    if (ret == 0) {
+        /* mbedTLS 3.x added sig_size and requires f_rng for RSA blinding. */
+        ret = mbedtls_pk_sign(&ctx->pk, MBEDTLS_MD_SHA256, hash, sizeof(hash), signature, *signature_length,
+                              signature_length, mbedtls_ctr_drbg_random, &ctr_drbg);
+    }
+#else
     ret = mbedtls_pk_sign(&ctx->pk, MBEDTLS_MD_SHA256, hash, sizeof(hash), signature, signature_length, NULL, NULL);
+#endif
+    mbedtls_ctr_drbg_free(&ctr_drbg);
+    mbedtls_entropy_free(&entropy);
     return (ret == 0) ? MU_STATUS_GOOD : MU_STATUS_BAD_INTERNALERROR;
 }
 
@@ -149,7 +172,7 @@ static opcua_statuscode_t m_rsa_sha256_verify(void *context, const opcua_byte_t 
     }
 
     opcua_byte_t hash[32];
-    ret = mbedtls_sha256_ret(data, data_length, hash, 0);
+    ret = m_hash(MBEDTLS_MD_SHA256, data, data_length, hash);
     if (ret != 0) {
         mbedtls_x509_crt_free(&crt);
         return MU_STATUS_BAD_INTERNALERROR;
@@ -181,8 +204,14 @@ static opcua_statuscode_t m_rsa_oaep_decrypt(void *context, const opcua_byte_t *
         return MU_STATUS_BAD_INTERNALERROR;
     }
 
+#if MBEDTLS_VERSION_MAJOR >= 3
+    /* mbedTLS 3.x removed the mode argument. */
+    ret = mbedtls_rsa_rsaes_oaep_decrypt(rsa, mbedtls_ctr_drbg_random, &ctr_drbg, NULL, 0, output_length, input, output,
+                                         *output_length);
+#else
     ret = mbedtls_rsa_rsaes_oaep_decrypt(rsa, mbedtls_ctr_drbg_random, &ctr_drbg, MBEDTLS_RSA_PRIVATE, NULL, 0,
                                          output_length, input, output, *output_length);
+#endif
     mbedtls_ctr_drbg_free(&ctr_drbg);
     mbedtls_entropy_free(&entropy);
     return (ret == 0) ? MU_STATUS_GOOD : MU_STATUS_BAD_SECURITYCHECKSFAILED;
@@ -219,9 +248,14 @@ static opcua_statuscode_t m_rsa_oaep_encrypt(void *context, const opcua_byte_t *
         return MU_STATUS_BAD_INTERNALERROR;
     }
 
+#if MBEDTLS_VERSION_MAJOR >= 3
+    /* mbedTLS 3.x removed the mode argument. */
+    ret = mbedtls_rsa_rsaes_oaep_encrypt(rsa, mbedtls_ctr_drbg_random, &ctr_drbg, NULL, 0, length, input, output);
+#else
     ret = mbedtls_rsa_rsaes_oaep_encrypt(rsa, mbedtls_ctr_drbg_random, &ctr_drbg, MBEDTLS_RSA_PUBLIC, NULL, 0, length,
                                          input, output);
-    *output_length = rsa->len;
+#endif
+    *output_length = mbedtls_rsa_get_len(rsa);
 
     mbedtls_ctr_drbg_free(&ctr_drbg);
     mbedtls_entropy_free(&entropy);
@@ -239,7 +273,7 @@ static opcua_statuscode_t m_rsa_pss_sha256_sign(void *context, const opcua_byte_
     mbedtls_rsa_set_padding(rsa, MBEDTLS_RSA_PKCS_V21, MBEDTLS_MD_SHA256);
 
     opcua_byte_t hash[32];
-    int ret = mbedtls_sha256_ret(data, length, hash, 0);
+    int ret = m_hash(MBEDTLS_MD_SHA256, data, length, hash);
     if (ret != 0) {
         return MU_STATUS_BAD_INTERNALERROR;
     }
@@ -255,8 +289,14 @@ static opcua_statuscode_t m_rsa_pss_sha256_sign(void *context, const opcua_byte_
         return MU_STATUS_BAD_INTERNALERROR;
     }
 
+#if MBEDTLS_VERSION_MAJOR >= 3
+    /* mbedTLS 3.x removed the mode argument. */
+    ret = mbedtls_rsa_rsassa_pss_sign(rsa, mbedtls_ctr_drbg_random, &ctr_drbg, MBEDTLS_MD_SHA256, sizeof(hash), hash,
+                                      signature);
+#else
     ret = mbedtls_rsa_rsassa_pss_sign(rsa, mbedtls_ctr_drbg_random, &ctr_drbg, MBEDTLS_RSA_PRIVATE, MBEDTLS_MD_SHA256,
                                       sizeof(hash), hash, signature);
+#endif
     if (ret == 0) {
         *signature_length = mbedtls_rsa_get_len(rsa);
     }
@@ -286,7 +326,7 @@ static opcua_statuscode_t m_rsa_pss_sha256_verify(void *context, const opcua_byt
     mbedtls_rsa_set_padding(rsa, MBEDTLS_RSA_PKCS_V21, MBEDTLS_MD_SHA256);
 
     opcua_byte_t hash[32];
-    ret = mbedtls_sha256_ret(data, data_length, hash, 0);
+    ret = m_hash(MBEDTLS_MD_SHA256, data, data_length, hash);
     if (ret != 0) {
         mbedtls_x509_crt_free(&crt);
         return MU_STATUS_BAD_INTERNALERROR;
@@ -296,8 +336,14 @@ static opcua_statuscode_t m_rsa_pss_sha256_verify(void *context, const opcua_byt
         mbedtls_x509_crt_free(&crt);
         return MU_STATUS_BAD_SECURITYCHECKSFAILED;
     }
+#if MBEDTLS_VERSION_MAJOR >= 3
+    /* mbedTLS 3.x removed the mode argument. */
+    ret = mbedtls_rsa_rsassa_pss_verify(rsa, mbedtls_ctr_drbg_random, NULL, MBEDTLS_MD_SHA256, sizeof(hash), hash,
+                                        signature);
+#else
     ret = mbedtls_rsa_rsassa_pss_verify(rsa, mbedtls_ctr_drbg_random, NULL, MBEDTLS_RSA_PUBLIC, MBEDTLS_MD_SHA256,
                                         sizeof(hash), hash, signature);
+#endif
     mbedtls_x509_crt_free(&crt);
     return (ret == 0) ? MU_STATUS_GOOD : MU_STATUS_BAD_SECURITYCHECKSFAILED;
 }
@@ -323,8 +369,14 @@ static opcua_statuscode_t m_rsa_oaep_sha256_decrypt(void *context, const opcua_b
         return MU_STATUS_BAD_INTERNALERROR;
     }
 
+#if MBEDTLS_VERSION_MAJOR >= 3
+    /* mbedTLS 3.x removed the mode argument. */
+    ret = mbedtls_rsa_rsaes_oaep_decrypt(rsa, mbedtls_ctr_drbg_random, &ctr_drbg, NULL, 0, output_length, input, output,
+                                         *output_length);
+#else
     ret = mbedtls_rsa_rsaes_oaep_decrypt(rsa, mbedtls_ctr_drbg_random, &ctr_drbg, MBEDTLS_RSA_PRIVATE, NULL, 0,
                                          output_length, input, output, *output_length);
+#endif
     mbedtls_ctr_drbg_free(&ctr_drbg);
     mbedtls_entropy_free(&entropy);
     return (ret == 0) ? MU_STATUS_GOOD : MU_STATUS_BAD_SECURITYCHECKSFAILED;
@@ -361,8 +413,13 @@ static opcua_statuscode_t m_rsa_oaep_sha256_encrypt(void *context, const opcua_b
         return MU_STATUS_BAD_INTERNALERROR;
     }
 
+#if MBEDTLS_VERSION_MAJOR >= 3
+    /* mbedTLS 3.x removed the mode argument. */
+    ret = mbedtls_rsa_rsaes_oaep_encrypt(rsa, mbedtls_ctr_drbg_random, &ctr_drbg, NULL, 0, length, input, output);
+#else
     ret = mbedtls_rsa_rsaes_oaep_encrypt(rsa, mbedtls_ctr_drbg_random, &ctr_drbg, MBEDTLS_RSA_PUBLIC, NULL, 0, length,
                                          input, output);
+#endif
     if (ret == 0) {
         *output_length = mbedtls_rsa_get_len(rsa);
     }
@@ -416,7 +473,7 @@ static opcua_statuscode_t m_verify_certificate_validity(void *context, const opc
 static opcua_statuscode_t m_get_certificate_thumbprint(void *context, const opcua_byte_t *certificate,
                                                        size_t certificate_length, opcua_byte_t *thumbprint) {
     (void)context;
-    int ret = mbedtls_sha1_ret(certificate, certificate_length, thumbprint);
+    int ret = m_hash(MBEDTLS_MD_SHA1, certificate, certificate_length, thumbprint);
     return (ret == 0) ? MU_STATUS_GOOD : MU_STATUS_BAD_INTERNALERROR;
 }
 
@@ -436,6 +493,64 @@ static opcua_statuscode_t m_get_certificate_thumbprint(void *context, const opcu
 
 _Static_assert(MU_ECC_KEYPAIR_CTX_SIZE >= MU_P256_COORD_LEN,
                "MU_ECC_KEYPAIR_CTX_SIZE must hold a 32-byte P-256 private scalar");
+
+/* OPC UA carries ECDSA signatures as raw r||s (2 * MU_P256_COORD_LEN), while
+   mbedtls_pk_sign/verify use DER. mbedTLS 3.x made mbedtls_ecp_keypair opaque,
+   so the raw r/s conversion goes through DER instead of keypair members. */
+#define MU_P256_DER_SIG_MAX 72 /* SEQUENCE { INTEGER r, INTEGER s } for P-256 */
+
+static size_t m_der_encode_integer(opcua_byte_t *out, const opcua_byte_t *value, size_t len) {
+    size_t pad = (len > 0 && (value[0] & 0x80) != 0) ? 1 : 0;
+    size_t content = len + pad;
+    out[0] = 0x02;
+    out[1] = (opcua_byte_t)content; /* P-256 coordinates: always < 128 */
+    if (pad) {
+        out[2] = 0x00;
+    }
+    (void)memcpy(out + 2 + pad, value, len);
+    return 2 + content;
+}
+
+static size_t m_der_encode_ecdsa_sig(opcua_byte_t *out, const opcua_byte_t *r, const opcua_byte_t *s,
+                                     size_t coord_len) {
+    opcua_byte_t body[2 * (2 + 1 + MU_P256_COORD_LEN)];
+    size_t n = m_der_encode_integer(body, r, coord_len);
+    n += m_der_encode_integer(body + n, s, coord_len);
+    out[0] = 0x30;
+    out[1] = (opcua_byte_t)n;
+    (void)memcpy(out + 2, body, n);
+    return 2 + n;
+}
+
+static int m_der_decode_ecdsa_sig(const opcua_byte_t *sig, size_t sig_len, opcua_byte_t *raw) {
+    if (sig_len < 8 || sig[0] != 0x30 || sig[1] != sig_len - 2) {
+        return -1;
+    }
+    size_t pos = 2;
+    for (int i = 0; i < 2; i++) {
+        if (pos + 2 > sig_len || sig[pos] != 0x02) {
+            return -1;
+        }
+        size_t len = sig[pos + 1];
+        pos += 2;
+        if (len > MU_P256_COORD_LEN + 1 || pos + len > sig_len) {
+            return -1;
+        }
+        const opcua_byte_t *v = sig + pos;
+        if (len == MU_P256_COORD_LEN + 1 && v[0] == 0x00) {
+            v++;
+            len--;
+        }
+        if (len > MU_P256_COORD_LEN) {
+            return -1;
+        }
+        opcua_byte_t *dst = raw + i * MU_P256_COORD_LEN + (MU_P256_COORD_LEN - len);
+        (void)memset(dst, 0, MU_P256_COORD_LEN - len);
+        (void)memcpy(dst, v, len);
+        pos += len;
+    }
+    return (pos == sig_len) ? 0 : -1;
+}
 
 /* Seed a local CTR_DRBG from the entropy pool for the ECC primitives that need
    randomness (keygen, ECDSA nonce, ECDH blinding). Caller frees on success. */
@@ -561,13 +676,8 @@ static opcua_statuscode_t m_ecc_sign(void *context, mu_ecc_curve_t curve, const 
     if (!ctx->ecc_provisioned || !signature || !signature_length || *signature_length < MU_ECC_SIGNATURE_LENGTH) {
         return MU_STATUS_BAD_SECURITYCHECKSFAILED;
     }
-    mbedtls_ecp_keypair *kp = mbedtls_pk_ec(ctx->ecc_pk);
-    if (!kp) {
-        return MU_STATUS_BAD_SECURITYCHECKSFAILED;
-    }
-
     opcua_byte_t hash[32];
-    if (mbedtls_sha256_ret(data, length, hash, 0) != 0) {
+    if (m_hash(MBEDTLS_MD_SHA256, data, length, hash) != 0) {
         return MU_STATUS_BAD_INTERNALERROR;
     }
 
@@ -577,20 +687,21 @@ static opcua_statuscode_t m_ecc_sign(void *context, mu_ecc_curve_t curve, const 
         return MU_STATUS_BAD_INTERNALERROR;
     }
 
-    mbedtls_mpi r;
-    mbedtls_mpi s;
-    mbedtls_mpi_init(&r);
-    mbedtls_mpi_init(&s);
+    opcua_byte_t der[MU_P256_DER_SIG_MAX];
+    size_t der_len = 0;
+#if MBEDTLS_VERSION_MAJOR >= 3
+    int ret = mbedtls_pk_sign(&ctx->ecc_pk, MBEDTLS_MD_SHA256, hash, sizeof(hash), der, sizeof(der), &der_len,
+                              mbedtls_ctr_drbg_random, &drbg);
+#else
+    int ret = mbedtls_pk_sign(&ctx->ecc_pk, MBEDTLS_MD_SHA256, hash, sizeof(hash), der, &der_len,
+                              mbedtls_ctr_drbg_random, &drbg);
+#endif
     opcua_statuscode_t rc = MU_STATUS_BAD_INTERNALERROR;
-    if (mbedtls_ecdsa_sign(&kp->grp, &r, &s, &kp->d, hash, sizeof(hash), mbedtls_ctr_drbg_random, &drbg) == 0 &&
-        mbedtls_mpi_write_binary(&r, signature, MU_P256_COORD_LEN) == 0 &&
-        mbedtls_mpi_write_binary(&s, signature + MU_P256_COORD_LEN, MU_P256_COORD_LEN) == 0) {
+    if (ret == 0 && m_der_decode_ecdsa_sig(der, der_len, signature) == 0) {
         *signature_length = MU_ECC_SIGNATURE_LENGTH;
         rc = MU_STATUS_GOOD;
     }
 
-    mbedtls_mpi_free(&s);
-    mbedtls_mpi_free(&r);
     mbedtls_ctr_drbg_free(&drbg);
     mbedtls_entropy_free(&entropy);
     return rc;
@@ -613,23 +724,16 @@ static opcua_statuscode_t m_ecc_verify(void *context, mu_ecc_curve_t curve, cons
         mbedtls_x509_crt_free(&crt);
         return MU_STATUS_BAD_SECURITYCHECKSFAILED;
     }
-    mbedtls_ecp_keypair *kp = mbedtls_pk_ec(crt.pk);
+    opcua_byte_t der[MU_P256_DER_SIG_MAX];
+    size_t der_len = m_der_encode_ecdsa_sig(der, signature, signature + MU_P256_COORD_LEN, MU_P256_COORD_LEN);
 
     opcua_byte_t hash[32];
-    mbedtls_mpi r;
-    mbedtls_mpi s;
-    mbedtls_mpi_init(&r);
-    mbedtls_mpi_init(&s);
     opcua_statuscode_t rc = MU_STATUS_BAD_SECURITYCHECKSFAILED;
-    if (kp && mbedtls_sha256_ret(data, data_length, hash, 0) == 0 &&
-        mbedtls_mpi_read_binary(&r, signature, MU_P256_COORD_LEN) == 0 &&
-        mbedtls_mpi_read_binary(&s, signature + MU_P256_COORD_LEN, MU_P256_COORD_LEN) == 0 &&
-        mbedtls_ecdsa_verify(&kp->grp, hash, sizeof(hash), &kp->Q, &r, &s) == 0) {
+    if (m_hash(MBEDTLS_MD_SHA256, data, data_length, hash) == 0 &&
+        mbedtls_pk_verify(&crt.pk, MBEDTLS_MD_SHA256, hash, sizeof(hash), der, der_len) == 0) {
         rc = MU_STATUS_GOOD;
     }
 
-    mbedtls_mpi_free(&s);
-    mbedtls_mpi_free(&r);
     mbedtls_x509_crt_free(&crt);
     return rc;
 }
@@ -700,8 +804,13 @@ opcua_statuscode_t mu_mbedtls_crypto_adapter_set_ecc_identity(mu_crypto_adapter_
         ctx->ecc_provisioned = 0;
     }
     mbedtls_pk_init(&ctx->ecc_pk);
-    if (mbedtls_pk_parse_key(&ctx->ecc_pk, key_der, key_len, NULL, 0) != 0 ||
-        mbedtls_pk_get_type(&ctx->ecc_pk) != MBEDTLS_PK_ECKEY) {
+#if MBEDTLS_VERSION_MAJOR >= 3
+    /* mbedTLS 3.x added f_rng/p_rng parameters (unused for plain DER keys). */
+    int parse_ret = mbedtls_pk_parse_key(&ctx->ecc_pk, key_der, key_len, NULL, 0, NULL, NULL);
+#else
+    int parse_ret = mbedtls_pk_parse_key(&ctx->ecc_pk, key_der, key_len, NULL, 0);
+#endif
+    if (parse_ret != 0 || mbedtls_pk_get_type(&ctx->ecc_pk) != MBEDTLS_PK_ECKEY) {
         mbedtls_pk_free(&ctx->ecc_pk);
         return MU_STATUS_BAD_SECURITYCHECKSFAILED;
     }
@@ -732,7 +841,12 @@ opcua_statuscode_t mu_mbedtls_crypto_adapter_init(mu_crypto_adapter_t *adapter, 
     ctx->key_len = key_len;
 
     mbedtls_pk_init(&ctx->pk);
+#if MBEDTLS_VERSION_MAJOR >= 3
+    /* mbedTLS 3.x added f_rng/p_rng parameters (unused for plain DER keys). */
+    int ret = mbedtls_pk_parse_key(&ctx->pk, key_der, key_len, NULL, 0, NULL, NULL);
+#else
     int ret = mbedtls_pk_parse_key(&ctx->pk, key_der, key_len, NULL, 0);
+#endif
     if (ret != 0) {
         mbedtls_pk_free(&ctx->pk);
         free(ctx);
