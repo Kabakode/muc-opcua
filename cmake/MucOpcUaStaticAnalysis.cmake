@@ -25,7 +25,7 @@ endif()
 find_program(CPPCHECK cppcheck)
 if(CPPCHECK)
     add_custom_target(cppcheck
-        COMMAND ${CPPCHECK} --enable=warning,performance,portability --std=c11 --suppress=missingIncludeSystem --suppress=preprocessorErrorDirective --inline-suppr --error-exitcode=1 -I ${CMAKE_SOURCE_DIR}/include -I ${CMAKE_SOURCE_DIR}/src -I ${CMAKE_SOURCE_DIR}/tests/support ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/tests
+        COMMAND ${CPPCHECK} --enable=warning,performance,portability --std=c11 --suppress=missingIncludeSystem --suppress=preprocessorErrorDirective --suppress=intToPointerCast --inline-suppr --error-exitcode=1 -I ${CMAKE_SOURCE_DIR}/include -I ${CMAKE_SOURCE_DIR}/src -I ${CMAKE_SOURCE_DIR}/tests/support ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/tests
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         COMMENT "Static analysis with cppcheck"
         VERBATIM

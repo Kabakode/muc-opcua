@@ -530,12 +530,13 @@ static int m_der_decode_ecdsa_sig(const opcua_byte_t *sig, size_t sig_len, opcua
         if (pos + 2 > sig_len || sig[pos] != 0x02) {
             return -1;
         }
-        size_t len = sig[pos + 1];
+        size_t field_len = sig[pos + 1];
         pos += 2;
-        if (len > MU_P256_COORD_LEN + 1 || pos + len > sig_len) {
+        if (field_len > MU_P256_COORD_LEN + 1 || pos + field_len > sig_len) {
             return -1;
         }
         const opcua_byte_t *v = sig + pos;
+        size_t len = field_len;
         if (len == MU_P256_COORD_LEN + 1 && v[0] == 0x00) {
             v++;
             len--;
@@ -546,7 +547,7 @@ static int m_der_decode_ecdsa_sig(const opcua_byte_t *sig, size_t sig_len, opcua
         opcua_byte_t *dst = raw + i * MU_P256_COORD_LEN + (MU_P256_COORD_LEN - len);
         (void)memset(dst, 0, MU_P256_COORD_LEN - len);
         (void)memcpy(dst, v, len);
-        pos += len;
+        pos += field_len;
     }
     return (pos == sig_len) ? 0 : -1;
 }

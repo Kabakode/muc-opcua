@@ -148,6 +148,18 @@ opcua_statuscode_t w_ecc_generate_ephemeral(void *context, mu_ecc_curve_t curve,
     return MU_STATUS_BAD_INTERNALERROR;
 }
 
+/* wolfSSL >= 5.8 rejects imported curve25519 private keys in shared_secret
+   with BAD_FUNC_ARG unless an RNG is bound to the key. */
+static int w_curve25519_bind_rng(curve25519_key *key, WC_RNG *rng) {
+#if defined(LIBWOLFSSL_VERSION_HEX) && LIBWOLFSSL_VERSION_HEX >= 0x05008000
+    return wc_curve25519_set_rng(key, rng);
+#else
+    (void)key;
+    (void)rng;
+    return 0;
+#endif
+}
+
 opcua_statuscode_t w_ecc_ecdh_derive(void *context, mu_ecc_curve_t curve, const opcua_byte_t *keypair_ctx,
                                      const opcua_byte_t *peer_pubkey, size_t peer_pubkey_length, opcua_byte_t *shared,
                                      size_t *shared_length) {
@@ -172,6 +184,7 @@ opcua_statuscode_t w_ecc_ecdh_derive(void *context, mu_ecc_curve_t curve, const 
         word32 out_len = (word32)*shared_length;
         if (wc_curve25519_import_private_ex(keypair_ctx, C25519_LEN, &priv, EC25519_LITTLE_ENDIAN) == 0 &&
             wc_curve25519_import_public_ex(peer_pubkey, C25519_LEN, &peer, EC25519_LITTLE_ENDIAN) == 0 &&
+            w_curve25519_bind_rng(&priv, &ctx->rng) == 0 &&
             wc_curve25519_shared_secret_ex(&priv, &peer, shared, &out_len, EC25519_LITTLE_ENDIAN) == 0) {
             *shared_length = out_len;
             rc = MU_STATUS_GOOD;
