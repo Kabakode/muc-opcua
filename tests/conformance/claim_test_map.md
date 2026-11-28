@@ -33,6 +33,8 @@ Backing test column: comma-separated ctest names (as registered).
 | Address Space Interfaces |  | full | test_profile_surface |
 | Base Info Locations Object |  | full | test_profile_surface |
 | Base Info Currency |  | full | test_profile_surface |
+| Base Info NormalizedString DataType |  | full | test_type_system |
+| Base Info DecimalString DataType |  | full | test_type_system |
 | Base Info Base Types |  | embedded, standard, full | test_profile_surface |
 | Base Info ServerType |  | embedded, standard, full | test_type_system |
 | Base Info Type Information |  | embedded, standard, full | test_claim_map |

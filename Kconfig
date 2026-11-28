@@ -3850,6 +3850,26 @@ menuconfig MUC_OPCUA_FACET_EXPOSES_TYPE_SYSTEM_SERVER
 
 if MUC_OPCUA_FACET_EXPOSES_TYPE_SYSTEM_SERVER
 
+config MUC_OPCUA_CU_BASE_INFO_NORMALIZEDSTRING
+	bool "CU: Base Info NormalizedString DataType"
+	depends on MUC_OPCUA_FACET_EXPOSES_TYPE_SYSTEM_SERVER
+	default y if MUC_OPCUA_INTERN_PROFILE_FULL_EVERYTHING_ENABLED_GENEROUS_CAPACITIES
+	help
+	  Implementation state: claimed.
+	  OPC item: CU 2481:Base Info NormalizedString DataType.
+	  Backing tests: test_type_system.
+	  Notes: Exposes the NormalizedString DataType and all its supertypes in the AddressSpace
+
+config MUC_OPCUA_CU_BASE_INFO_DECIMALSTRING
+	bool "CU: Base Info DecimalString DataType"
+	depends on MUC_OPCUA_FACET_EXPOSES_TYPE_SYSTEM_SERVER
+	default y if MUC_OPCUA_INTERN_PROFILE_FULL_EVERYTHING_ENABLED_GENEROUS_CAPACITIES
+	help
+	  Implementation state: claimed.
+	  OPC item: CU 2482:Base Info DecimalString DataType.
+	  Backing tests: test_type_system.
+	  Notes: Exposes the DecimalString DataType and all its supertypes in the AddressSpace
+
 config MUC_OPCUA_CU_BASE_INFO_BASE_TYPES
 	bool "CU: Base Info Base Types"
 	depends on MUC_OPCUA_FACET_EXPOSES_TYPE_SYSTEM_SERVER && MUC_OPCUA_CU_BASE_INFO_DATATYPES
@@ -3885,18 +3905,6 @@ config MUC_OPCUA_CU_BASE_INFO_TYPE_INFORMATION
 #   Detail: CU 2423:Base Info Rational Number.
 #   Notes: Exposes the RationalNumberType and RationalNumber, all their supertypes and for the DataType the Encoding Objects in the AddressSpace.
 comment "Base Info Rational Number (DOCUMENTED)"
-
-# Base Info NormalizedString DataType (opc_cu_2481)
-#   Implementation state: documented -- visible but not selectable.
-#   Detail: CU 2481:Base Info NormalizedString DataType.
-#   Notes: Exposes the NormalizedString DataType and all its supertypes in the AddressSpace
-comment "Base Info NormalizedString DataType (DOCUMENTED)"
-
-# Base Info DecimalString DataType (opc_cu_2482)
-#   Implementation state: documented -- visible but not selectable.
-#   Detail: CU 2482:Base Info DecimalString DataType.
-#   Notes: Exposes the DecimalString DataType and all its supertypes in the AddressSpace
-comment "Base Info DecimalString DataType (DOCUMENTED)"
 
 # Base Info Date DataTypes (opc_cu_2483)
 #   Implementation state: documented -- visible but not selectable.

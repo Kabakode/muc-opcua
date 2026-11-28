@@ -651,6 +651,12 @@ static const mu_reference_t s_type_folder_data_refs[] = {
 #ifdef MUC_OPCUA_CU_BASE_INFO_CURRENCY
     {{0, MU_NODEID_NUMERIC, {35}}, {0, MU_NODEID_NUMERIC, {MU_NODEID_CURRENCYUNITTYPE}}, true},
 #endif
+#ifdef MUC_OPCUA_CU_BASE_INFO_NORMALIZEDSTRING
+    {{0, MU_NODEID_NUMERIC, {35}}, {0, MU_NODEID_NUMERIC, {MU_NODEID_NORMALIZEDSTRING}}, true},
+#endif
+#ifdef MUC_OPCUA_CU_BASE_INFO_DECIMALSTRING
+    {{0, MU_NODEID_NUMERIC, {35}}, {0, MU_NODEID_NUMERIC, {MU_NODEID_DECIMALSTRING}}, true},
+#endif
     {{0, MU_NODEID_NUMERIC, {40}}, {0, MU_NODEID_NUMERIC, {61}}, true}};
 
 static const mu_reference_t s_type_folder_reference_refs[] = {
@@ -746,9 +752,17 @@ static const mu_reference_t s_number_subtype_refs[] = {
    gated by SERVERTYPE && TYPE_INFORMATION), independent of whether
    CU_BASE_INFO_DATATYPES is also enabled. */
 static const mu_reference_t s_string_subtype_refs[] = {
+#if MUC_OPCUA_CU_BASE_INFO_NORMALIZEDSTRING
+    {{0, MU_NODEID_NUMERIC, {45}},
+     {0, MU_NODEID_NUMERIC, {MU_NODEID_NORMALIZEDSTRING}},
+     true}, /* String -> NormalizedString (CU 2481) */
+#endif
+#if MUC_OPCUA_CU_BASE_INFO_DECIMALSTRING
+    {{0, MU_NODEID_NUMERIC, {45}},
+     {0, MU_NODEID_NUMERIC, {MU_NODEID_DECIMALSTRING}},
+     true}, /* String -> DecimalString (CU 2482) */
+#endif
 #if MUC_OPCUA_CU_BASE_INFO_DATATYPES
-    {{0, MU_NODEID_NUMERIC, {45}}, {0, MU_NODEID_NUMERIC, {12877}}, true}, /* String -> NormalizedString */
-    {{0, MU_NODEID_NUMERIC, {45}}, {0, MU_NODEID_NUMERIC, {12878}}, true}, /* String -> DecimalString */
     {{0, MU_NODEID_NUMERIC, {45}}, {0, MU_NODEID_NUMERIC, {12879}}, true}, /* String -> DurationString */
     {{0, MU_NODEID_NUMERIC, {45}}, {0, MU_NODEID_NUMERIC, {12880}}, true}, /* String -> TimeString */
     {{0, MU_NODEID_NUMERIC, {45}}, {0, MU_NODEID_NUMERIC, {12881}}, true}, /* String -> DateString */
@@ -6721,6 +6735,30 @@ static const mu_node_t s_base_nodes[] = {
      sizeof(s_property_type_ref) / sizeof(s_property_type_ref[0]),
      MU_RESEND_INPUT_VALUE,
      .type_definition = {0, MU_NODEID_NUMERIC, {68}}},
+#endif
+#if MUC_OPCUA_CU_BASE_INFO_NORMALIZEDSTRING
+    /* OPC-10000-7 CU 2481: NormalizedString (12877), subtype of String (12).
+       Sorted between InputArguments(12874) and DurationString(12879). */
+    {{0, MU_NODEID_NUMERIC, {MU_NODEID_NORMALIZEDSTRING}},
+     MU_NODECLASS_DATATYPE,
+     {16, s_str_NormalizedString},
+     {16, s_str_NormalizedString},
+     NULL,
+     0,
+     NULL,
+     .type_definition = {0}},
+#endif
+#if MUC_OPCUA_CU_BASE_INFO_DECIMALSTRING
+    /* OPC-10000-7 CU 2482: DecimalString (12878), subtype of String (12).
+       Sorted between NormalizedString(12877) and DurationString(12879). */
+    {{0, MU_NODEID_NUMERIC, {MU_NODEID_DECIMALSTRING}},
+     MU_NODECLASS_DATATYPE,
+     {13, s_str_DecimalString},
+     {13, s_str_DecimalString},
+     NULL,
+     0,
+     NULL,
+     .type_definition = {0}},
 #endif
 #if MUC_OPCUA_CU_BASE_INFO_DATATYPES
     /* CU 2483: DurationString/TimeString/DateString (subtypes of String). Sorted

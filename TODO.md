@@ -25,6 +25,7 @@
 | #360 | CU claiming sweep | 119→568 claimed, 525 OPC CUs tracked |
 | S-363-1..7 | Codacy style debt in `scripts/profile_manifest/` | Split `_check_incomplete_item_visibility` into helpers; dropped `kind` arg from `_validate_sparse_true_profile_map`; implicit-booleaness asserts; extracted marker-test helpers. 112/112 tests pass, `validate.py --all` OK. |
 | Constitution v1.0.3 | Principle VIII — CU-Level Kconfig Gating | Every CU gets its own Kconfig symbol, `#ifdef` gating, no invented middlemen |
+| C-2481/C-2482 | NormalizedString (12877) + DecimalString (12878) DataType nodes under their CU guards | Symbols renamed `OPC_CU_2481/2482` → `MUC_OPCUA_CU_BASE_INFO_NORMALIZEDSTRING`/`_DECIMALSTRING` (family convention); nodes added in sorted slots after 12874; String HasSubtype + DataTypes-folder refs moved to the CU guards; `test_type_system` asserts nodes + refs. |
 
 ## State
 
