@@ -65,7 +65,7 @@ static void test_close(void *context, void *handle) {
 static opcua_statuscode_t test_accept(void *context, void **handle) {
     state_error_transport_t *transport = (state_error_transport_t *)context;
     transport->accept_count++;
-    *handle = (transport->accept_count == 1) ? (void *)1 : NULL;
+    *handle = (transport->accept_count == 1) ? (void *)1 : NULL; // cppcheck-suppress intToPointerCast
     return MU_STATUS_GOOD;
 }
 

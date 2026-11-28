@@ -6,7 +6,7 @@ void setUp(void) {}
 void tearDown(void) {}
 
 #define INDEX_LOOKUP_NUMERIC_NODE(ns, id)                                                                              \
-    { {(ns), MU_NODEID_NUMERIC, {(id)}}, MU_NODECLASS_VARIABLE, {0, NULL}, {0, NULL}, NULL, 0, NULL }
+    {{(ns), MU_NODEID_NUMERIC, {(id)}}, MU_NODECLASS_VARIABLE, {0, NULL}, {0, NULL}, NULL, 0, NULL}
 
 static const opcua_byte_t s_index_lookup_string_id[] = "indexed-string-node";
 static const opcua_byte_t s_missing_index_lookup_string_id[] = "missing-indexed-node";
