@@ -16,7 +16,7 @@ yet reconciled to individual OPC CU ids count as not-implemented — see the
 reconciliation note below.
 
 - Distinct Server CUs: **525** (required 179, optional 346)
-- Reconciled as implemented: **required 19/179**, **optional 89/346**
+- Reconciled as implemented: **required 19/179**, **optional 90/346**
 
 ### Per Server profile / facet
 
@@ -29,14 +29,14 @@ reconciliation note below.
 | 1026 | Global Service Authorization Request Server Facet | 0/1 | 0/0 |
 | 1027 | Global Service KeyCredential Pull Facet | 0/1 | 0/0 |
 | 1029 | GDS AliasName Server Facet | 0/5 | 0/5 |
-| 1219 | Exposes Type System Server Facet | 3/8 | 1/38 |
+| 1219 | Exposes Type System Server Facet | 3/8 | 2/38 |
 | 1322 | Core 2022 Server Facet | 8/17 | 17/27 |
 | 1324 | Standard DataChange Subscription 2022 Server Facet | 1/16 | 0/1 |
 | 1328 | Auditing 2022 Server Facet | 1/18 | 0/12 |
-| 1329 | Node Management 2022 Server Facet | 3/15 | 1/39 |
+| 1329 | Node Management 2022 Server Facet | 3/15 | 2/39 |
 | 1330 | Nano Embedded Device 2022 Server Profile | 8/22 | 17/29 |
-| 1332 | Embedded 2022 UA Server Profile | 12/51 | 17/68 |
-| 1333 | Standard 2022 UA Server Profile | 13/55 | 17/68 |
+| 1332 | Embedded 2022 UA Server Profile | 12/51 | 18/68 |
+| 1333 | Standard 2022 UA Server Profile | 13/55 | 18/68 |
 | 1343 | Global Discovery Server 2022 Profile | 9/41 | 17/28 |
 | 1344 | Global Discovery and Certificate Mgmt 2022 Server | 9/52 | 17/42 |
 | 1346 | A & E Wrapper 2022 Facet | 1/18 | 0/0 |
@@ -108,8 +108,8 @@ reconciliation note below.
 | 2255 | Micro Embedded Device 2022 Server Profile | 9/32 | 17/30 |
 | 2266 | Nano Embedded Device 2025 Server Profile | 8/20 | 17/28 |
 | 2267 | Micro Embedded Device 2025 Server Profile | 9/32 | 17/30 |
-| 2268 | Embedded 2025 UA Server Profile | 12/50 | 17/69 |
-| 2269 | Standard 2025 UA Server Profile | 13/54 | 17/69 |
+| 2268 | Embedded 2025 UA Server Profile | 12/50 | 18/69 |
+| 2269 | Standard 2025 UA Server Profile | 13/54 | 18/69 |
 | 2322 | AliasName Configuration Facet | 0/4 | 0/5 |
 | 2323 | AliasName Server PubSub Publisher Facet | 0/4 | 0/4 |
 
@@ -263,7 +263,7 @@ Optional CUs:
 ## Profile Embedded 2025 UA Server Profile
 
 - Required CUs implemented: **12/50**
-- Optional CUs implemented: **17/69**
+- Optional CUs implemented: **18/69**
 
 Required CUs:
 
@@ -325,6 +325,7 @@ Optional CUs:
 - [x] `opc_cu_2446` Address Space AddIn Reference
 - [x] `opc_cu_2447` Address Space AddIn DefaultInstanceBrowsename
 - [x] `opc_cu_2476` Base Info LocalTime
+- [x] `opc_cu_2484` Base Info BitFieldMaskDataType
 - [x] `opc_cu_2711` Base Info Selection List
 - [x] `opc_cu_2936` Attribute Write StatusCode & Timestamp
 - [x] `opc_cu_2969` Base Info ValueAsText
@@ -344,7 +345,6 @@ Optional CUs:
 - [ ] `opc_cu_2480` Time Sync – IEEE 802.1AS
 - [ ] `opc_cu_2481` Base Info NormalizedString DataType
 - [ ] `opc_cu_2482` Base Info DecimalString DataType
-- [ ] `opc_cu_2484` Base Info BitFieldMaskDataType
 - [ ] `opc_cu_2485` Base Info KeyValuePair
 - [ ] `opc_cu_2490` Base Info Subvariables of Structures
 - [ ] `opc_cu_2491` Base Info AssociatedWith
@@ -393,7 +393,7 @@ Optional CUs:
 ## Profile Standard 2025 UA Server Profile
 
 - Required CUs implemented: **13/54**
-- Optional CUs implemented: **17/69**
+- Optional CUs implemented: **18/69**
 
 Required CUs:
 
@@ -459,6 +459,7 @@ Optional CUs:
 - [x] `opc_cu_2446` Address Space AddIn Reference
 - [x] `opc_cu_2447` Address Space AddIn DefaultInstanceBrowsename
 - [x] `opc_cu_2476` Base Info LocalTime
+- [x] `opc_cu_2484` Base Info BitFieldMaskDataType
 - [x] `opc_cu_2711` Base Info Selection List
 - [x] `opc_cu_2936` Attribute Write StatusCode & Timestamp
 - [x] `opc_cu_2969` Base Info ValueAsText
@@ -478,7 +479,6 @@ Optional CUs:
 - [ ] `opc_cu_2480` Time Sync – IEEE 802.1AS
 - [ ] `opc_cu_2481` Base Info NormalizedString DataType
 - [ ] `opc_cu_2482` Base Info DecimalString DataType
-- [ ] `opc_cu_2484` Base Info BitFieldMaskDataType
 - [ ] `opc_cu_2485` Base Info KeyValuePair
 - [ ] `opc_cu_2490` Base Info Subvariables of Structures
 - [ ] `opc_cu_2491` Base Info AssociatedWith
@@ -530,7 +530,7 @@ Facet CU membership uses direct `included_conformance_units`
 (sub-facet CUs are counted where the snapshot expands them).
 
 - **GDS AliasName Server Facet** (`opc_facet_1029`): required 0/5, optional 0/5
-- **Exposes Type System Server Facet** (`opc_facet_1219`): required 3/7, optional 1/39
+- **Exposes Type System Server Facet** (`opc_facet_1219`): required 3/7, optional 2/39
 - **Core 2022 Server Facet** (`opc_facet_1322`): required 8/18, optional 17/26
 - **Standard DataChange Subscription 2022 Server Facet** (`opc_facet_1324`): required 1/16, optional 0/1
 - **Global Certificate Management Server Facet** (`opc_facet_1631`): required 0/1, optional 0/0

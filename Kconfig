@@ -3850,6 +3850,16 @@ menuconfig MUC_OPCUA_FACET_EXPOSES_TYPE_SYSTEM_SERVER
 
 if MUC_OPCUA_FACET_EXPOSES_TYPE_SYSTEM_SERVER
 
+config MUC_OPCUA_CU_BASE_INFO_BITFIELDMASKDATATYPE
+	bool "CU: Base Info BitFieldMaskDataType"
+	depends on MUC_OPCUA_FACET_EXPOSES_TYPE_SYSTEM_SERVER
+	default y if MUC_OPCUA_INTERN_PROFILE_FULL_EVERYTHING_ENABLED_GENEROUS_CAPACITIES
+	help
+	  Implementation state: claimed.
+	  OPC item: CU 2484:Base Info BitFieldMaskDataType.
+	  Backing tests: test_profile_surface.
+	  Notes: Standard OPC UA DataType automatically exposed through the type system (see opc_cu_base_info_datatypes / opc_cu_base_info_base_types). No dedicated CU implementation file is required.
+
 config MUC_OPCUA_CU_BASE_INFO_BASE_TYPES
 	bool "CU: Base Info Base Types"
 	depends on MUC_OPCUA_FACET_EXPOSES_TYPE_SYSTEM_SERVER && MUC_OPCUA_CU_BASE_INFO_DATATYPES
@@ -3903,12 +3913,6 @@ comment "Base Info DecimalString DataType (DOCUMENTED)"
 #   Detail: CU 2483:Base Info Date DataTypes.
 #   Notes: Reconciled (spec 079): DurationString(12879)/TimeString(12880)/DateString(12881) exposed as subtypes of String(12) in base_nodes.c; test_type_system. Satisfied by opc_cu_base_info_datatypes. Exposes the DurationString, TimeString, and DateString DataTypes and all their supertypes in the AddressSpace
 comment "Base Info Date DataTypes (DOCUMENTED)"
-
-# Base Info BitFieldMaskDataType (opc_cu_2484)
-#   Implementation state: documented -- visible but not selectable.
-#   Detail: CU 2484:Base Info BitFieldMaskDataType.
-#   Notes: Standard OPC UA DataType automatically exposed through the type system (see opc_cu_base_info_datatypes / opc_cu_base_info_base_types). No dedicated CU implementation file is required.
-comment "Base Info BitFieldMaskDataType (DOCUMENTED)"
 
 # Base Info KeyValuePair (opc_cu_2485)
 #   Implementation state: documented -- visible but not selectable.

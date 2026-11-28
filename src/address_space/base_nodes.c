@@ -651,6 +651,9 @@ static const mu_reference_t s_type_folder_data_refs[] = {
 #ifdef MUC_OPCUA_CU_BASE_INFO_CURRENCY
     {{0, MU_NODEID_NUMERIC, {35}}, {0, MU_NODEID_NUMERIC, {MU_NODEID_CURRENCYUNITTYPE}}, true},
 #endif
+#ifdef MUC_OPCUA_CU_BASE_INFO_BITFIELDMASKDATATYPE
+    {{0, MU_NODEID_NUMERIC, {35}}, {0, MU_NODEID_NUMERIC, {MU_NODEID_BITFIELDMASKDATATYPE}}, true},
+#endif
     {{0, MU_NODEID_NUMERIC, {40}}, {0, MU_NODEID_NUMERIC, {61}}, true}};
 
 static const mu_reference_t s_type_folder_reference_refs[] = {
@@ -724,6 +727,11 @@ static const mu_reference_t s_base_data_type_refs[] = {
 #endif
 #if MU_HAVE_STRUCTURE_TYPE
     {{0, MU_NODEID_NUMERIC, {45}}, {0, MU_NODEID_NUMERIC, {22}}, true}, /* HasSubtype -> Structure */
+#endif
+#ifdef MUC_OPCUA_CU_BASE_INFO_BITFIELDMASKDATATYPE
+    {{0, MU_NODEID_NUMERIC, {45}},
+     {0, MU_NODEID_NUMERIC, {MU_NODEID_BITFIELDMASKDATATYPE}},
+     true}, /* HasSubtype -> BitFieldMaskDataType (CU 2484) */
 #endif
 };
 
@@ -6382,6 +6390,19 @@ static const mu_node_t s_base_nodes[] = {
      sizeof(s_property_type_ref) / sizeof(s_property_type_ref[0]),
      &s_max_monitored_items_per_call_value,
      .type_definition = {0, MU_NODEID_NUMERIC, {68}}},
+#if MUC_OPCUA_CU_BASE_INFO_BITFIELDMASKDATATYPE
+    /* OPC-10000-7 CU 2484: BitFieldMaskDataType (11737), subtype of BaseDataType
+       (24), no encoding Objects. Sorted between MaxMonitoredItemsPerCall(11714)
+       and UnauthorizedRequestCount(11892). */
+    {{0, MU_NODEID_NUMERIC, {MU_NODEID_BITFIELDMASKDATATYPE}},
+     MU_NODECLASS_DATATYPE,
+     {20, s_str_BitFieldMaskDataType},
+     {20, s_str_BitFieldMaskDataType},
+     NULL,
+     0,
+     NULL,
+     .type_definition = {0}},
+#endif
 #if MUC_OPCUA_CU_BASE_INFO_SERVERTYPE && MUC_OPCUA_CU_BASE_INFO_TYPE_INFORMATION
     {{0, MU_NODEID_NUMERIC, {11892}},
      MU_NODECLASS_VARIABLE,

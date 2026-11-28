@@ -190,6 +190,9 @@ void test_claimed_cu_nodes_present_when_enabled(void) {
     TEST_ASSERT_NOT_NULL(base_find(8917));  /* Default Binary */
     TEST_ASSERT_NOT_NULL(base_find(17634)); /* Server.LocalTime */
 #endif
+#if defined(MUC_OPCUA_CU_BASE_INFO_BITFIELDMASKDATATYPE) && MUC_OPCUA_CU_BASE_INFO_BITFIELDMASKDATATYPE
+    TEST_ASSERT_NOT_NULL(base_find(11737)); /* BitFieldMaskDataType */
+#endif
 #if defined(MUC_OPCUA_CU_BASE_INFO_OPTIONSET) && MUC_OPCUA_CU_BASE_INFO_OPTIONSET
     TEST_ASSERT_NOT_NULL(base_find(11487)); /* OptionSetType */
 #endif

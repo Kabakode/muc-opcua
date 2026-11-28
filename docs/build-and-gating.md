@@ -478,6 +478,7 @@ to refresh.
 | MUC_OPCUA_FACET_USER_TOKEN_USER_NAME_PASSWORD_SERVER | opc_facet_1695 | implemented |  |  | ✅ | ✅ | ✅ |  |
 | MUC_OPCUA_FACET_USER_TOKEN_X509_CERTIFICATE_SERVER | opc_facet_1696 | implemented |  |  |  | ✅ | ✅ |  |
 | MUC_OPCUA_FACET_EMBEDDED_DATACHANGE_SUBSCRIPTION_2022_SERVER | opc_facet_2250 | implemented |  | ✅ | ✅ | ✅ | ✅ |  |
+| MUC_OPCUA_CU_BASE_INFO_BITFIELDMASKDATATYPE | opc_cu_2484 | claimed |  |  |  |  | ✅ | MUC_OPCUA_FACET_EXPOSES_TYPE_SYSTEM_SERVER |
 | MUC_OPCUA_CU_BASE_INFO_BASE_TYPES | opc_cu_3188 | claimed |  |  | ✅ | ✅ | ✅ | MUC_OPCUA_FACET_EXPOSES_TYPE_SYSTEM_SERVER, MUC_OPCUA_CU_BASE_INFO_DATATYPES |
 | MUC_OPCUA_CU_BASE_INFO_SERVERTYPE | opc_cu_3189 | claimed |  |  | ✅ | ✅ | ✅ | MUC_OPCUA_FACET_EXPOSES_TYPE_SYSTEM_SERVER |
 | MUC_OPCUA_CU_BASE_INFO_TYPE_INFORMATION | opc_cu_5801 | claimed |  |  | ✅ | ✅ | ✅ | MUC_OPCUA_FACET_EXPOSES_TYPE_SYSTEM_SERVER |
@@ -655,7 +656,6 @@ The following OPC items are tracked in the manifest but are NOT implemented. The
 | opc_cu_2481 |  | documented | Exposes the NormalizedString DataType and all its supertypes in the AddressSpace |
 | opc_cu_2482 |  | documented | Exposes the DecimalString DataType and all its supertypes in the AddressSpace |
 | opc_cu_2483 |  | documented | Reconciled (spec 079): DurationString(12879)/TimeString(12880)/DateString(12881) exposed as subtypes of String(12) in base_nodes.c; test_type_system. Satisfied by opc_cu_base_info_datatypes. Exposes the DurationString, TimeString, and DateString DataTypes and all their supertypes in the AddressSpace |
-| opc_cu_2484 |  | documented | Standard OPC UA DataType automatically exposed through the type system (see opc_cu_base_info_datatypes / opc_cu_base_info_base_types). No dedicated CU implementation file is required. |
 | opc_cu_2485 |  | documented | Standard OPC UA DataType automatically exposed through the type system (see opc_cu_base_info_datatypes / opc_cu_base_info_base_types). No dedicated CU implementation file is required. |
 | opc_cu_2490 |  | documented | Standard OPC UA defining type/reference automatically exposed through the type system (see opc_cu_base_info_datatypes / opc_cu_base_info_base_types). No dedicated CU implementation file is required. |
 | opc_cu_2491 |  | documented | Standard OPC UA defining type/reference automatically exposed through the type system (see opc_cu_base_info_datatypes / opc_cu_base_info_base_types). No dedicated CU implementation file is required. |

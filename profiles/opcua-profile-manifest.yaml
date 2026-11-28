@@ -2301,7 +2301,7 @@
       ],
       "cu_optional": true,
       "id": "opc_cu_2484",
-      "implementation_state": "documented",
+      "implementation_state": "claimed",
       "kconfig_symbol": "MUC_OPCUA_CU_BASE_INFO_BITFIELDMASKDATATYPE",
       "kind": "conformance_unit",
       "notes": "Standard OPC UA DataType automatically exposed through the type system (see opc_cu_base_info_datatypes / opc_cu_base_info_base_types). No dedicated CU implementation file is required.",
