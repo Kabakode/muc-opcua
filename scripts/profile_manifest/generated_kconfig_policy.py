@@ -43,24 +43,109 @@ def _display_prompt_variants(item: dict) -> set[str]:
     return variants
 
 
+def _selectable_prompt_set(
+    items: list,
+    declared_prompts: set[str],
+) -> set[str]:
+    prompts: set[str] = set()
+    for item in items:
+        if not isinstance(item, dict) or item.get("implementation_state") not in _KCONFIG_VISIBLE_STATES:
+            continue
+        prompts.update(_display_prompt_variants(item) & declared_prompts)
+    return prompts
+
+
+def _required_source_parts(opc_ref: object) -> list[str]:
+    parts: list[str] = []
+    if isinstance(opc_ref, dict):
+        spec = opc_ref.get("spec")
+        section = opc_ref.get("section")
+        cu_id = opc_ref.get("cu_id")
+        facet = opc_ref.get("facet")
+        if spec:
+            parts.append(str(spec))
+        if section:
+            parts.append("§" + str(section))
+        if cu_id:
+            parts.append("CU " + str(cu_id))
+        if facet:
+            parts.append(str(facet))
+    return parts
+
+
+def _check_unimplemented_comment(
+    item: dict,
+    generated_lines: list[str],
+    errors: list[str],
+) -> None:
+    item_id = str(item.get("id", "<unknown>"))
+    display_name = item.get("opc_display_name")
+    if item.get("kind") == "optimization":
+        return
+    if not isinstance(display_name, str) or not display_name:
+        return
+    comment_display_name = re.sub(r"\s+", " ", display_name).strip()
+    expected_comment = 'comment "' + comment_display_name + " (NOT IMPLEMENTED)"
+    comment_line = next(
+        (line for line in generated_lines if expected_comment in line),
+        None,
+    )
+    if comment_line is None:
+        errors.append(
+            "Kconfig: unimplemented manifest item '" + item_id
+            + "' is missing its NOT IMPLEMENTED comment"
+        )
+        return
+    required_source_parts = _required_source_parts(item.get("opc_reference"))
+    missing_source_parts = [
+        part for part in required_source_parts if part not in comment_line
+    ]
+    if required_source_parts and ("[" not in comment_line or missing_source_parts):
+        errors.append(
+            "Kconfig: unimplemented manifest item '" + item_id
+            + "' comment is missing OPC source text: "
+            + ", ".join(missing_source_parts)
+        )
+
+
+def _check_incomplete_item_leaks(
+    item: dict,
+    declared: tuple[set[str], set[str]],
+    selectable_prompts: set[str],
+    errors: list[str],
+) -> None:
+    item_id = str(item.get("id", "<unknown>"))
+    state = item.get("implementation_state")
+    declared_symbols, declared_prompts = declared
+    symbol = item.get("kconfig_symbol")
+    if isinstance(symbol, str) and symbol and symbol in declared_symbols:
+        errors.append(
+            "Kconfig: incomplete manifest item '" + item_id
+            + "' with implementation_state '" + str(state)
+            + "' exposes Kconfig symbol '" + symbol + "'"
+        )
+    leaked_prompts = _display_prompt_variants(item) & declared_prompts
+    leaked_prompts.difference_update(selectable_prompts)
+    for display_name in sorted(leaked_prompts):
+        errors.append(
+            "Kconfig: incomplete manifest item '" + item_id
+            + "' with implementation_state '" + str(state)
+            + "' exposes OPC display prompt '" + display_name + "'"
+        )
+
+
 def _check_incomplete_item_visibility(
     manifest: dict,
     generated_kconfig: str,
 ) -> list[str]:
     errors: list[str] = []
-    generated_lines = generated_kconfig.splitlines()
     items = manifest.get("items", [])
     if not isinstance(items, list):
         return errors
 
-    declared_symbols, declared_prompts = _kconfig_declarations(generated_kconfig)
-    selectable_prompts: set[str] = set()
-    for item in items:
-        if not isinstance(item, dict) or item.get("implementation_state") not in _KCONFIG_VISIBLE_STATES:
-            continue
-        selectable_prompts.update(
-            _display_prompt_variants(item) & declared_prompts
-        )
+    generated_lines = generated_kconfig.splitlines()
+    declared = _kconfig_declarations(generated_kconfig)
+    selectable_prompts = _selectable_prompt_set(items, declared[1])
 
     for item in items:
         if not isinstance(item, dict):
@@ -68,73 +153,9 @@ def _check_incomplete_item_visibility(
         state = item.get("implementation_state")
         if state in _KCONFIG_VISIBLE_STATES:
             continue
-
-        item_id = str(item.get("id", "<unknown>"))
-        display_name = item.get("opc_display_name")
-        if (
-            state == "unimplemented"
-            and item.get("kind") != "optimization"
-            and isinstance(display_name, str)
-            and display_name
-        ):
-            comment_display_name = re.sub(r"\s+", " ", display_name).strip()
-            expected_comment = (
-                'comment "' + comment_display_name + " (NOT IMPLEMENTED)"
-            )
-            comment_line = next(
-                (line for line in generated_lines if expected_comment in line),
-                None,
-            )
-            if comment_line is None:
-                errors.append(
-                    "Kconfig: unimplemented manifest item '" + item_id
-                    + "' is missing its NOT IMPLEMENTED comment"
-                )
-            else:
-                opc_ref = item.get("opc_reference")
-                required_source_parts: list[str] = []
-                if isinstance(opc_ref, dict):
-                    spec = opc_ref.get("spec")
-                    section = opc_ref.get("section")
-                    cu_id = opc_ref.get("cu_id")
-                    facet = opc_ref.get("facet")
-                    if spec:
-                        required_source_parts.append(str(spec))
-                    if section:
-                        required_source_parts.append("§" + str(section))
-                    if cu_id:
-                        required_source_parts.append("CU " + str(cu_id))
-                    if facet:
-                        required_source_parts.append(str(facet))
-                missing_source_parts = [
-                    part for part in required_source_parts
-                    if part not in comment_line
-                ]
-                if required_source_parts and (
-                    "[" not in comment_line or missing_source_parts
-                ):
-                    errors.append(
-                        "Kconfig: unimplemented manifest item '" + item_id
-                        + "' comment is missing OPC source text: "
-                        + ", ".join(missing_source_parts)
-                    )
-
-        symbol = item.get("kconfig_symbol")
-        if isinstance(symbol, str) and symbol and symbol in declared_symbols:
-            errors.append(
-                "Kconfig: incomplete manifest item '" + item_id
-                + "' with implementation_state '" + str(state)
-                + "' exposes Kconfig symbol '" + symbol + "'"
-            )
-
-        leaked_prompts = _display_prompt_variants(item) & declared_prompts
-        leaked_prompts.difference_update(selectable_prompts)
-        for display_name in sorted(leaked_prompts):
-            errors.append(
-                "Kconfig: incomplete manifest item '" + item_id
-                + "' with implementation_state '" + str(state)
-                + "' exposes OPC display prompt '" + display_name + "'"
-            )
+        if state == "unimplemented":
+            _check_unimplemented_comment(item, generated_lines, errors)
+        _check_incomplete_item_leaks(item, declared, selectable_prompts, errors)
 
     return errors
 
