@@ -15,9 +15,9 @@ remains future work.
 
 | State | Count |
 |-------|-------|
-| claimed | 133 |
+| claimed | 134 |
 | implemented | 17 |
-| documented | 464 |
+| documented | 463 |
 | deferred | 7 |
 | unimplemented | 12 |
 
@@ -65,7 +65,7 @@ remains future work.
 | opc_cu_2481 | conformance_unit | documented |  | OPC_CU_2481 | full | test_type_system |
 | opc_cu_2482 | conformance_unit | documented |  | OPC_CU_2482 | full | test_type_system |
 | opc_cu_2483 | conformance_unit | documented |  | MUC_OPCUA_CU_BASE_INFO_DATE_DATATYPES | embedded, standard, full | test_type_system |
-| opc_cu_2484 | conformance_unit | documented |  | MUC_OPCUA_CU_BASE_INFO_BITFIELDMASKDATATYPE | full | test_profile_surface |
+| opc_cu_2484 | conformance_unit | claimed |  | MUC_OPCUA_CU_BASE_INFO_BITFIELDMASKDATATYPE | full | test_profile_surface |
 | opc_cu_2485 | conformance_unit | documented |  | MUC_OPCUA_CU_BASE_INFO_KEYVALUEPAIR | full | test_profile_surface |
 | opc_cu_2490 | conformance_unit | documented |  | MUC_OPCUA_CU_BASE_INFO_SUBVARIABLES_OF_STRUCTURES | full | test_profile_surface |
 | opc_cu_2491 | conformance_unit | documented |  | MUC_OPCUA_CU_BASE_INFO_ASSOCIATEDWITH | full | test_profile_surface |
