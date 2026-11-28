@@ -166,6 +166,20 @@ void test_specialized_datatype_nodes_and_supertypes(void) {
 }
 #endif
 
+#if MUC_OPCUA_CU_BASE_INFO_NORMALIZEDSTRING || MUC_OPCUA_CU_BASE_INFO_DECIMALSTRING
+/* CUs 2481/2482: NormalizedString / DecimalString DataTypes, subtypes of String. */
+void test_normalized_decimal_string_datatypes(void) {
+#if MUC_OPCUA_CU_BASE_INFO_NORMALIZEDSTRING
+    assert_node(12877u, MU_NODECLASS_DATATYPE, "NormalizedString");
+    TEST_ASSERT_TRUE(has_forward_ref(12u, 45u, 12877u)); /* String -> NormalizedString */
+#endif
+#if MUC_OPCUA_CU_BASE_INFO_DECIMALSTRING
+    assert_node(12878u, MU_NODECLASS_DATATYPE, "DecimalString");
+    TEST_ASSERT_TRUE(has_forward_ref(12u, 45u, 12878u)); /* String -> DecimalString */
+#endif
+}
+#endif
+
 #if MUC_OPCUA_CU_BASE_INFO_ARGUMENT_TYPE
 /* spec 080a: Argument DataType + its Encoding Objects and the shared encoding infra
    (CU 3641). */
@@ -958,6 +972,9 @@ int main(void) {
     RUN_TEST(test_server_profile_array_advertises_embedded_profile);
 #if MUC_OPCUA_CU_BASE_INFO_DATATYPES
     RUN_TEST(test_specialized_datatype_nodes_and_supertypes);
+#endif
+#if MUC_OPCUA_CU_BASE_INFO_NORMALIZEDSTRING || MUC_OPCUA_CU_BASE_INFO_DECIMALSTRING
+    RUN_TEST(test_normalized_decimal_string_datatypes);
 #endif
 #if MUC_OPCUA_CU_BASE_INFO_ARGUMENT_TYPE
     RUN_TEST(test_argument_datatype_and_encodings);

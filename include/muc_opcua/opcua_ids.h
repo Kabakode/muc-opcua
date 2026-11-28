@@ -182,6 +182,8 @@
 #define MU_NODEID_HASINTERFACE 17603      /* HasInterface ReferenceType, OPC-10000-5 §11.20 */
 #define MU_NODEID_HASADDIN 17604          /* HasAddIn ReferenceType, OPC-10000-5 §11.21 */
 #define MU_NODEID_CURRENCYUNITTYPE 23498  /* CurrencyUnitType DataType, OPC-10000-5 §12.2.12.2 */
+#define MU_NODEID_NORMALIZEDSTRING 12877  /* NormalizedString DataType, OPC-10000-5 §12.2.11.2 */
+#define MU_NODEID_DECIMALSTRING 12878     /* DecimalString DataType, OPC-10000-5 §12.2.11.3 */
 
 /* T002 lookup outcome (OPC-10000-5 via opc-ua-reference MCP, 2026-07).
  * The following instance-declaration / folder NodeIds are NOT numerically
